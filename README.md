@@ -34,11 +34,3 @@ That is to let myself devote to the myself-interested things, not the jungle wor
 1. Make a minimal runable rec-system on wikipedia 构建最小可运行的、基于维基百科的推荐系统
 2. Enrich the rec-system. 丰富推荐系统
 3. Enrich the content-pool. 丰富内容池
-
-In fact, recently I have less time to develop this. I just write down little here to let me don't forget.
-
-事实上，我最近没有时间来做这个事情…… 熬夜把大概内容写上，防止自己忘了。
-
-I'll start this in about 1 month.
-
-大概 1 个月后，我会开始真正来做这件事情！
