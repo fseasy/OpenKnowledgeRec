@@ -126,4 +126,48 @@
 
     由上数据，基本就可以把维基百科的简单推荐做起来了。
 
+
+## 2. wikipedia pagess 数据解析
+
+如上，我们基于 `pages` 数据可以拿到我们需要的字段。现在面临的问题就是如何解析这个文件了。
+
+对 dump 文件的解析，最著名的就是 [wiki-extractor](https://github.com/attardi/wikiextractor)， 看了点代码并跑了下：
+
+1. 可以解析出每篇文档
+2. 包含id， url，正文文本；其中正文文本可以用 HTML 格式输出； 但是在解析出的 HTML 中， category 被丢弃了
+
+代码还是比较复杂的，基于此改动成本较高.
+
+再搜索了下， 在 [从 dump 数据构建 Wikipedia 的 Category Hierarchy][1] 中比较详细介绍了如何拿到 Category 及构建层次化的Cateogry，
+非常有价值。具体地，
+
+1. 可以从 `pages` 中解析出Category
+2. 普通page，存在 `词条 -> Category` 映射 （1对多）； 
+3. 存在特殊的 `Category` page (如`Category:数学术语`); 
+    
+    人工查看了一个category类具体页面。 发现页面的头部有全部的分类链（多条）；此外，在页面的尾部，同样有 `cagetory` 标签。
+    这个标签和上面直接显示的分类链不完全相同，但似乎差距不大（上面显示的，应该是从 root -> 当前类别的全部路径，而下面显示的仅是父节点）
+    我试着沿着父节点不断往上点，找到了 `Category:总览` 词条，它再没有 `category` 词条。这说明递归是可以构建层次化category的。
+    而且这个递归并不需要特别处理 `Category` 类的页面。
+
+4. 构建层次化 cateogry 时， 要考虑 `redirect` 逻辑，一个类别没有父节点，不代表它的redirect类目没有父节点（也就是需要链接到唯一的实体）
+5. 层次化 category 不是一个树状结构，而是一个图。
+
+    但根据前面回溯的逻辑，理论上应该是有 root 节点的。
+
+
+我们初期应该就是基于 Category 做推荐，暂时不需要完整的层次化结构，只需要中间层次的 Category 做兴趣冷启动选择就好 —— 
+太泛可能不好选择，太细又容易狭窄。到时基于叶子节点往上回溯找到合适的层次即可，应该还好。
+
+回到正题，关于解析 pages 数据，又找到一篇 [Reading Wikipedia XML Dumps with Python][2], 就是直接拿 `xml.etree` 解析就完事。
+想想就这么干吧。
+
+> 从上面了解的信息：`<ns>` 是 namespace, 其中 ns == 10 是模板也，对我们应该是没啥用的。 
+
+有点犹豫要不要手写解析，因为显然自己解析会遇到错漏的情况。但目前开源的工具不满足需求，同时获得一个勉强的结果应该是简单的，那就直接干吧。
+有错误没啥问题。
+
+
+
 [1]: https://libzx.so/chn/2017/08/20/wikipedia-category-hierarchy.html "从 dump 数据构建 Wikipedia 的 Category Hierarchy"
+[2]: https://www.heatonresearch.com/2017/03/03/python-basic-wikipedia-parsing.html "Reading Wikipedia XML Dumps with Python "
