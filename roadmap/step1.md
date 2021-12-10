@@ -80,8 +80,9 @@
     <siteinfo>...</siteinfo>
     <page> 
         <title>哲学</title>
-        <ns>0</ns>
-        <id>18</id>
+        <ns>0</ns> // page的namespace
+        <id>18</id> // page的id
+        <redirect title="Computer accessibility" /> // 可能有
         <revision>
             <id>66014900</id>
             <parentid>65755763</parentid>
@@ -129,6 +130,8 @@
 
 ## 2. wikipedia pagess 数据解析
 
+### 2.1 简单调研
+
 如上，我们基于 `pages` 数据可以拿到我们需要的字段。现在面临的问题就是如何解析这个文件了。
 
 对 dump 文件的解析，最著名的就是 [wiki-extractor](https://github.com/attardi/wikiextractor)， 看了点代码并跑了下：
@@ -167,7 +170,18 @@
 有点犹豫要不要手写解析，因为显然自己解析会遇到错漏的情况。但目前开源的工具不满足需求，同时获得一个勉强的结果应该是简单的，那就直接干吧。
 有错误没啥问题。
 
+### 2.2 实施
 
+目标解析字段：
+
+```
+- page
+    - title
+    - id
+    - catetory
+    - redirect (redict title, if has)
+    - summary (extract from page text)
+```
 
 [1]: https://libzx.so/chn/2017/08/20/wikipedia-category-hierarchy.html "从 dump 数据构建 Wikipedia 的 Category Hierarchy"
 [2]: https://www.heatonresearch.com/2017/03/03/python-basic-wikipedia-parsing.html "Reading Wikipedia XML Dumps with Python "
