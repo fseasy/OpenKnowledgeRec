@@ -132,11 +132,10 @@ class TargetPageData(object):
         d = cls()
         d.title = raw.title
         d.id = raw.id
-        d.categoties = parse_text.extract_categories(raw.text)
+        d.categories = parse_text.extract_categories(raw.text)
         d.redirect = raw.redirect
         d.summary = parse_text.extract_summary(raw.text, raw.title)
         return d
-
 
 
 def main():
