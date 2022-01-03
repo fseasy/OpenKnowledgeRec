@@ -128,7 +128,7 @@
     由上数据，基本就可以把维基百科的简单推荐做起来了。
 
 
-## 2. wikipedia pagess 数据解析
+## 2. wikipedia pages 数据解析
 
 ### 2.1 简单调研
 
@@ -182,6 +182,41 @@
     - redirect (redict title, if has)
     - summary (extract from page text)
 ```
+
+**单线程跑**
+
+- 3776842it [07:30, 8377.54it/s]
+
+**3进程跑**
+
+- 3776842it [09:20, 6736.41it/s]
+          
+瓶颈不在运算啊，这个抽取逻辑还是太简单了。
+
+统计无category的比例，结果发现 $2237250/3776130 \approx 59%$ 的数据是没有category的。
+这个比例有点高了，取没有category的head10看下，
+
+- 一类是标题是“wikepedia”打头的，这种是维基百科站点的信息，无关紧要。
+- 一类是 “消歧”页面，如 “设计模式”， 原文为 `{{Disambiguation|cat=四字消歧义}}`, 展示的时候也是为“分类”。但是这个意义不大。
+- 一类展示有分类，但原文中找不到“类别”的定义，如“2003年7月”。
+- 一类是直接 redirect, 如 “Linux操作系统”。
+- 最后一类是用其他模式写的分类，如“天文學”里的 `[[分類:天文學|天文學]]`
+
+把 `[[分類` 给加上，重新跑一遍，无category的量为 $2217652 / 3776130 \approx 59$, 相比前面少了一些，不过大比例没啥变化。
+再看rear20, redirect有12个，其余 4 个文件，
+
+一个`Category:潛水艦電影` 渲染页面也是重定向，一个是wikipedia页面，其余两个 `理查三世的挖掘和重新安葬`, `嚎哮排演` 从渲染页面看
+的确是有分类的，但是为何现有规则没有找到？因为bz文件没有tail，也觉得暂时无需那么精确，到此为止。
+
+我们将category不为空的数据抽取出来(使用 `grep -v "\"categories\": \[\],"`)，得到pages解析后的结果。
+
+最终行数： 1,558,478
+
+## 3. 构建层次的categories
+
+按照 `doc -> c1 -> c2 -> .. -> root` 的逻辑构建整个categories的连接。这样才能在某个层次上选择categories来作为兴趣的初始。
+
+
 
 [1]: https://libzx.so/chn/2017/08/20/wikipedia-category-hierarchy.html "从 dump 数据构建 Wikipedia 的 Category Hierarchy"
 [2]: https://www.heatonresearch.com/2017/03/03/python-basic-wikipedia-parsing.html "Reading Wikipedia XML Dumps with Python "

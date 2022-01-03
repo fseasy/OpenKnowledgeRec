@@ -5,6 +5,8 @@
 import argparse
 import copy
 import logging
+import json
+import pathlib
 from typing import Callable, Optional, Iterable
 import xml.etree.ElementTree as ET
 
@@ -33,7 +35,7 @@ class RawPageData(object):
 
     def __str__(self):
         text_head = self.text[:20].replace("\n", " ") if self.text else None
-        return f"T={self.title} | I={self.id} | R={self.redirect} | T={text_head}"
+        return f"T={self.title} | I={self.id} | R={self.redirect} | Text={text_head}"
 
 
 class RawPageDataGen(object):
@@ -104,7 +106,7 @@ class PageXmlStreamParser(object):
             self._page.id = elem.text
             return None
         if tag == "redirect" and event == "end":
-            self._page.redirect = elem.attrib("title")
+            self._page.redirect = elem.attrib["title"]
             return None
         if tag == "revision":
             self._start_revision_ns = True if event == "start" else False
@@ -123,6 +125,9 @@ class TargetPageData(object):
         self.categories = None
         self.redirect = None
         self.summary = None
+
+    def json_str(self) -> str:
+        return json.dumps(self.__dict__, ensure_ascii=False)
 
     def __str__(self):
         return "|".join(f"{k}={v}" for k, v in self.__dict__.items())
@@ -146,14 +151,35 @@ def main():
     parser = argparse.ArgumentParser(description="Extract fields from wikipedia pages")
     parser.add_argument("--input", "-i", help="path to wikipedia pages xml, support [.bz2, .xml] format", 
         required=True)
+    parser.add_argument("--output", "-o", help="path to output fpath (.josnl)", required=True)
+    parser.add_argument("--process_num", "-p", help="process num", default=1, type=int)
     args = parser.parse_args()
 
-    for page in tqdm.tqdm(RawPageDataGen()(args.input)):
-        if not page.is_valid():
-            logger.warning("got invalid page: %s", page)
-            continue
-        page = TargetPageData.from_raw_data(page)
-        print(page)
+    pathlib.Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    with open(args.output, mode="wt", encoding="utf-8") as outputf:
+        if args.process_num == 1:
+            for page in tqdm.tqdm(RawPageDataGen()(args.input)):
+                if not page.is_valid():
+                    logger.warning("got invalid page: %s", page)
+                    continue
+                page = TargetPageData.from_raw_data(page)
+                print(page.json_str(), file=outputf)
+        else:
+            import multiprocessing
+            with multiprocessing.Pool(processes=args.process_num) as pool:
+                for page in tqdm.tqdm(pool.imap_unordered(_raw2target, RawPageDataGen()(args.input))):
+                    if page is None:
+                        continue
+                    print(page.json_str(), file=outputf)
+
+
+def _raw2target(r):
+    if not r.is_valid():
+        logger.warning("got invalid page: %s", r)
+        return None
+    page = TargetPageData.from_raw_data(r)
+    return page
+
 
 if __name__ == "__main__":
     main()

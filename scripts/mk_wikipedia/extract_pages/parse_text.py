@@ -14,9 +14,10 @@ def extract_categories(text: str) -> List[str]:
     has format: 
         [[Category:戏剧| ]]
         [[Category:表演藝術]]
+        [[分類:天文學|天文學]]
     """
-    raw_cats = re.findall(r"\[\[Category:(.*)?\]\]", text)
-    return [c.split("|", 1)[0].strip() for c in raw_cats]
+    raw_cats = re.findall(r"\[\[(?:Category|分類|分类):(.*)?\]\]", text)
+    return list(set([c.split("|", 1)[0].strip() for c in raw_cats]))
 
 
 def extract_summary(text: str, title: str) -> List[str]:
