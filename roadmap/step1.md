@@ -214,9 +214,11 @@
 
 ## 3. 构建层次的categories
 
-按照 `doc -> c1 -> c2 -> .. -> root` 的逻辑构建整个categories的连接。这样才能在某个层次上选择categories来作为兴趣的初始。
+按照 `doc -> c1 -> c2 -> .. -> root` 的逻辑构建整个categories的连接。
+这个连接有如下作用：
 
-
+1. 构成一个文档-类别节点的网络，方便后续做相关推荐
+2. 简单地，可从这个网络中，选择部分规则适中的 categories, 作为冷启选择的兴趣类别
 
 [1]: https://libzx.so/chn/2017/08/20/wikipedia-category-hierarchy.html "从 dump 数据构建 Wikipedia 的 Category Hierarchy"
 [2]: https://www.heatonresearch.com/2017/03/03/python-basic-wikipedia-parsing.html "Reading Wikipedia XML Dumps with Python "
