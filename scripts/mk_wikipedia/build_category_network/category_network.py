@@ -58,6 +58,9 @@ class CategoryNetwork(object):
             node.parents.add(pnode)
             pnode.children.add(node)
     
+    def nodes(self):
+        return self._title2node.values()
+
     def serialize(self):
         """pickle will raise 
         RecursionError: maximum recursion depth exceeded while pickling an object
